@@ -43,17 +43,32 @@ def load_data():
     """Load dashboard metrics data"""
     try:
         # Try to load processed metrics
-        metrics_df = pd.read_csv('data/processed/dashboard_metrics.csv')
+        import os
+        metrics_path = 'data/processed/dashboard_metrics.csv'
+        
+        # Check if file exists
+        if not os.path.exists(metrics_path):
+            st.error(f"Data file not found: {metrics_path}")
+            st.info("Please ensure data files are in the repository.")
+            return None, None
+            
+        metrics_df = pd.read_csv(metrics_path)
         
         # Try to load raw GA data
-        try:
-            ga_df = pd.read_csv('data/raw/ga_export.csv')
-        except:
-            ga_df = None
+        ga_path = 'data/raw/ga_export.csv'
+        ga_df = None
+        if os.path.exists(ga_path):
+            try:
+                ga_df = pd.read_csv(ga_path)
+            except Exception as e:
+                st.warning(f"Could not load GA data: {str(e)}")
+                ga_df = None
             
         return metrics_df, ga_df
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
         return None, None
 
 def calculate_kpi_summary(metrics_df):
@@ -119,8 +134,14 @@ def main():
     # Load data
     metrics_df, ga_df = load_data()
     
-    if metrics_df is None:
+    if metrics_df is None or len(metrics_df) == 0:
         st.error("Unable to load dashboard data. Please ensure data files are available.")
+        st.info("""
+        **Troubleshooting:**
+        1. Ensure `data/processed/dashboard_metrics.csv` exists in the repository
+        2. Check that the file path is correct
+        3. Verify the file is committed to GitHub
+        """)
         return
     
     # Calculate summary KPIs
@@ -130,18 +151,25 @@ def main():
     st.sidebar.header("📅 Filters")
     
     # Date filter
-    if 'Date' in metrics_df.columns:
+    if 'Date' in metrics_df.columns and len(metrics_df['Date'].unique()) > 0:
         dates = sorted(metrics_df['Date'].unique(), reverse=True)
-        selected_date = st.sidebar.selectbox("Select Date", dates, index=0)
-        filtered_df = metrics_df[metrics_df['Date'] == selected_date]
+        if len(dates) > 0:
+            selected_date = st.sidebar.selectbox("Select Date", dates, index=0)
+            filtered_df = metrics_df[metrics_df['Date'] == selected_date]
+        else:
+            filtered_df = metrics_df
     else:
         filtered_df = metrics_df
     
     # Channel filter
-    channels = ['All'] + list(metrics_df['Channel'].unique())
-    selected_channel = st.sidebar.selectbox("Select Channel", channels)
-    if selected_channel != 'All':
-        filtered_df = filtered_df[filtered_df['Channel'] == selected_channel]
+    unique_channels = metrics_df['Channel'].unique().tolist() if 'Channel' in metrics_df.columns else []
+    if len(unique_channels) > 0:
+        channels = ['All'] + unique_channels
+        selected_channel = st.sidebar.selectbox("Select Channel", channels)
+        if selected_channel != 'All':
+            filtered_df = filtered_df[filtered_df['Channel'] == selected_channel]
+    else:
+        st.warning("No channel data available.")
     
     # Main dashboard
     st.markdown("---")
@@ -151,10 +179,13 @@ def main():
     
     with col1:
         roas = kpi_summary.get('ROAS', 0)
+        delta_value = None
+        if roas > 0 and 3.50 > 0:
+            delta_value = f"{((roas - 3.50) / 3.50 * 100):.1f}%"
         st.metric(
             label="📈 ROAS",
             value=f"{roas:.2f}",
-            delta=f"{((roas - 3.50) / 3.50 * 100):.1f}%" if roas > 0 else None
+            delta=delta_value
         )
     
     with col2:
@@ -212,6 +243,8 @@ def main():
             )
             fig.update_layout(showlegend=False, height=400)
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No channel click data available to display.")
     
     with col2:
         st.subheader("🎯 KPI Performance")
@@ -254,6 +287,8 @@ def main():
                 height=400
             )
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No KPI data available to display.")
     
     # Data Table
     st.markdown("---")

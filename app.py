@@ -12,13 +12,6 @@ from datetime import datetime, timedelta
 import os
 import sys
 
-# Add error handling for imports
-try:
-    import streamlit as st
-except ImportError:
-    print("Error: streamlit not installed. Run: pip install streamlit")
-    sys.exit(1)
-
 # Page configuration
 st.set_page_config(
     page_title="Marketing Analytics Dashboard",

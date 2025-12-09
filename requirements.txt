@@ -1,0 +1,9 @@
+pandas>=1.5.0
+numpy>=1.23.0
+google-auth>=2.16.0
+google-auth-oauthlib>=0.8.0
+google-auth-httplib2>=0.1.0
+google-cloud-bigquery>=3.4.0
+gspread>=5.7.0
+schedule>=1.2.0
+

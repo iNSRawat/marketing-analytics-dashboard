@@ -10,6 +10,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import os
+import sys
+
+# Add error handling for imports
+try:
+    import streamlit as st
+except ImportError:
+    print("Error: streamlit not installed. Run: pip install streamlit")
+    sys.exit(1)
 
 # Page configuration
 st.set_page_config(
@@ -312,5 +320,15 @@ def main():
     )
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        st.exception(e)
+        st.info("""
+        **If you're seeing this error:**
+        1. Check that all data files are in the repository
+        2. Verify requirements.txt includes all dependencies
+        3. Check Streamlit Cloud logs for more details
+        """)
 

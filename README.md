@@ -48,11 +48,12 @@ This repository contains the Marketing Analytics Dashboard project that was prev
 ## Technical Architecture
 
 - **Backend**: Python with Google Sheets API
+- **Web Dashboard**: Streamlit for interactive web visualization
 - **Orchestration**: Apache Airflow for automation
 - **Data Warehouse**: BigQuery for data aggregation
-- **Visualization**: Tableau for interactive dashboards
-- **Deployment**: Google Cloud Platform
-- **Scheduling**: Google Cloud Scheduler
+- **Visualization**: Streamlit (web) + Tableau (enterprise)
+- **Deployment**: Multiple platform options (Streamlit Cloud, Heroku, GCP, AWS)
+- **Scheduling**: Google Cloud Scheduler / Apache Airflow
 
 ## Technologies
 
@@ -81,20 +82,55 @@ This repository contains the Marketing Analytics Dashboard project that was prev
 
 ## Setup & Usage
 
-```bash
-python dashboard_automation.py
-```
+### Local Development
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/iNSRawat/marketing-analytics-dashboard.git
+   cd marketing-analytics-dashboard
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the automation script**:
+   ```bash
+   python dashboard_automation.py
+   ```
+
+4. **Run the web dashboard locally**:
+   ```bash
+   streamlit run app.py
+   ```
+   The dashboard will be available at `http://localhost:8501`
+
+### Deploy Dashboard Online
+
+The dashboard can be deployed to make it visible online. See **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed deployment instructions.
+
+**Quick Deploy Options**:
+- **Streamlit Cloud** (Recommended - Free): [Deploy Guide](DEPLOYMENT.md#option-1-streamlit-cloud-easiest--free--recommended)
+- **Heroku**: [Deploy Guide](DEPLOYMENT.md#option-2-heroku-free-tier-available)
+- **Google Cloud Run**: [Deploy Guide](DEPLOYMENT.md#option-3-google-cloud-run-pay-as-you-go)
+- **Other Platforms**: See [DEPLOYMENT.md](DEPLOYMENT.md) for more options
 
 ## Files Included
 
-- `dashboard_automation.py` - Main automation script
+- `app.py` - **Streamlit web dashboard application** (deploy this for online access)
+- `dashboard_automation.py` - Main automation script for data updates
 - `data/raw/ga_export.csv` - Google Analytics export
 - `data/processed/dashboard_metrics.csv` - Processed metrics
+- `requirements.txt` - Python dependencies
+- `DEPLOYMENT.md` - Comprehensive deployment guide
 
 ## Dependencies
 
 - pandas
 - numpy
+- streamlit (for web dashboard)
+- plotly (for interactive charts)
 - google-auth
 - google-cloud-bigquery
 - gspread
@@ -102,7 +138,7 @@ python dashboard_automation.py
 
 Install dependencies:
 ```bash
-pip install pandas numpy google-auth google-cloud-bigquery gspread schedule
+pip install -r requirements.txt
 ```
 
 ## 📚 Resources & Data Sources

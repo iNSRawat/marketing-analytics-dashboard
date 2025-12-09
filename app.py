@@ -44,28 +44,40 @@ def load_data():
     """Load dashboard metrics data"""
     try:
         # Try to load processed metrics
-        import os
         metrics_path = 'data/processed/dashboard_metrics.csv'
         
         # Check if file exists
         if not os.path.exists(metrics_path):
-            st.error(f"Data file not found: {metrics_path}")
-            st.info("Please ensure data files are in the repository.")
-            return None, None
+            # Try alternative path
+            alt_path = os.path.join(os.getcwd(), metrics_path)
+            if os.path.exists(alt_path):
+                metrics_path = alt_path
+            else:
+                st.error(f"Data file not found: {metrics_path}")
+                st.info("Please ensure data files are in the repository.")
+                return None, None
             
         metrics_df = pd.read_csv(metrics_path)
         
-        # Try to load raw GA data
+        # Validate dataframe
+        if metrics_df.empty:
+            st.warning("Data file is empty.")
+            return None, None
+            
+        # Try to load raw GA data (optional)
         ga_path = 'data/raw/ga_export.csv'
         ga_df = None
         if os.path.exists(ga_path):
             try:
                 ga_df = pd.read_csv(ga_path)
             except Exception as e:
-                st.warning(f"Could not load GA data: {str(e)}")
-                ga_df = None
+                # GA data is optional, so just log a warning
+                pass
             
         return metrics_df, ga_df
+    except pd.errors.EmptyDataError:
+        st.error("Data file is empty or corrupted.")
+        return None, None
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
         import traceback
@@ -315,6 +327,14 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except FileNotFoundError as e:
+        st.error(f"File not found: {str(e)}")
+        st.info("""
+        **Troubleshooting:**
+        1. Ensure data files are committed to GitHub
+        2. Check file paths are correct
+        3. Verify files exist in the repository
+        """)
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         st.exception(e)

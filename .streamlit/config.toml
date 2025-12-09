@@ -1,7 +1,5 @@
-[server]
-headless = true
-enableCORS = false
-port = 8080
+# Streamlit Cloud manages server settings automatically
+# Only theme settings are included here
 
 [theme]
 primaryColor = "#1f77b4"

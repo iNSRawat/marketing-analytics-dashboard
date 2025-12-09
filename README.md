@@ -106,6 +106,15 @@ This repository contains the Marketing Analytics Dashboard project that was prev
    ```
    The dashboard will be available at `http://localhost:8501`
 
+5. **Open Jupyter Notebook for interactive analysis**:
+   ```bash
+   jupyter notebook Marketing_Analytics_Dashboard.ipynb
+   ```
+   Or use JupyterLab:
+   ```bash
+   jupyter lab
+   ```
+
 ### Deploy Dashboard Online
 
 The dashboard can be deployed to make it visible online. See **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed deployment instructions.
@@ -119,6 +128,7 @@ The dashboard can be deployed to make it visible online. See **[DEPLOYMENT.md](D
 ## Files Included
 
 - `app.py` - **Streamlit web dashboard application** (deploy this for online access)
+- `Marketing_Analytics_Dashboard.ipynb` - **Jupyter notebook for interactive analysis** (comprehensive visualizations and insights)
 - `dashboard_automation.py` - Main automation script for data updates
 - `data/raw/ga_export.csv` - Google Analytics export
 - `data/processed/dashboard_metrics.csv` - Processed metrics
@@ -131,6 +141,8 @@ The dashboard can be deployed to make it visible online. See **[DEPLOYMENT.md](D
 - numpy
 - streamlit (for web dashboard)
 - plotly (for interactive charts)
+- matplotlib & seaborn (for visualizations)
+- jupyter (for notebook analysis)
 - google-auth
 - google-cloud-bigquery
 - gspread
@@ -140,6 +152,25 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+
+## Analysis Options
+
+### Option 1: Web Dashboard (Streamlit)
+- **File**: `app.py`
+- **Best for**: Online deployment, sharing with stakeholders
+- **Run**: `streamlit run app.py`
+
+### Option 2: Jupyter Notebook
+- **File**: `Marketing_Analytics_Dashboard.ipynb`
+- **Best for**: Interactive analysis, data exploration, detailed visualizations
+- **Run**: `jupyter notebook Marketing_Analytics_Dashboard.ipynb`
+- **Features**:
+  - Comprehensive data analysis
+  - Multiple visualization types (matplotlib, plotly, seaborn)
+  - KPI calculations and insights
+  - Channel performance comparisons
+  - Time series analysis
+  - Exportable reports
 
 ## 📚 Resources & Data Sources
 

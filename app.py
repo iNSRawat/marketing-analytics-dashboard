@@ -3,22 +3,23 @@ Marketing Analytics Dashboard - Streamlit Web Application
 Deploy this app to make the dashboard visible online
 """
 
+# IMPORTANT: st.set_page_config must be the first Streamlit command
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import os
-import sys
 
-# Page configuration
 st.set_page_config(
     page_title="Marketing Analytics Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Now import other libraries
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime
+import os
 
 # Custom CSS for better styling
 st.markdown("""
@@ -43,25 +44,16 @@ st.markdown("""
 def load_data():
     """Load dashboard metrics data"""
     try:
-        # Try to load processed metrics
         metrics_path = 'data/processed/dashboard_metrics.csv'
         
         # Check if file exists
         if not os.path.exists(metrics_path):
-            # Try alternative path
-            alt_path = os.path.join(os.getcwd(), metrics_path)
-            if os.path.exists(alt_path):
-                metrics_path = alt_path
-            else:
-                st.error(f"Data file not found: {metrics_path}")
-                st.info("Please ensure data files are in the repository.")
-                return None, None
+            return None, None
             
         metrics_df = pd.read_csv(metrics_path)
         
         # Validate dataframe
         if metrics_df.empty:
-            st.warning("Data file is empty.")
             return None, None
             
         # Try to load raw GA data (optional)
@@ -70,18 +62,11 @@ def load_data():
         if os.path.exists(ga_path):
             try:
                 ga_df = pd.read_csv(ga_path)
-            except Exception as e:
-                # GA data is optional, so just log a warning
+            except:
                 pass
             
         return metrics_df, ga_df
-    except pd.errors.EmptyDataError:
-        st.error("Data file is empty or corrupted.")
-        return None, None
     except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        import traceback
-        st.code(traceback.format_exc())
         return None, None
 
 def calculate_kpi_summary(metrics_df):
@@ -94,52 +79,50 @@ def calculate_kpi_summary(metrics_df):
     # Extract numeric values (remove % and convert)
     def extract_value(val):
         if isinstance(val, str):
-            val = val.replace('%', '').replace(',', '')
+            val = val.replace('%', '').replace(',', '').strip()
         try:
             return float(val)
         except:
             return 0
     
     # Calculate overall metrics
-    overall = metrics_df[metrics_df['Channel'] == 'Overall']
-    if len(overall) > 0:
-        roas_row = overall[overall['KPI'] == 'ROAS']
-        revenue_row = overall[overall['KPI'] == 'Total Revenue']
-        cost_row = overall[overall['KPI'] == 'Total Cost']
+    if 'Channel' in metrics_df.columns and 'KPI' in metrics_df.columns:
+        overall = metrics_df[metrics_df['Channel'] == 'Overall']
+        if len(overall) > 0:
+            roas_row = overall[overall['KPI'] == 'ROAS']
+            revenue_row = overall[overall['KPI'] == 'Total Revenue']
+            cost_row = overall[overall['KPI'] == 'Total Cost']
+            
+            if len(roas_row) > 0:
+                summary['ROAS'] = extract_value(roas_row.iloc[0]['Value'])
+            if len(revenue_row) > 0:
+                summary['Total Revenue'] = extract_value(revenue_row.iloc[0]['Value'])
+            if len(cost_row) > 0:
+                summary['Total Cost'] = extract_value(cost_row.iloc[0]['Value'])
         
-        if len(roas_row) > 0:
-            summary['ROAS'] = extract_value(roas_row.iloc[0]['Value'])
-        if len(revenue_row) > 0:
-            summary['Total Revenue'] = extract_value(revenue_row.iloc[0]['Value'])
-        if len(cost_row) > 0:
-            summary['Total Cost'] = extract_value(cost_row.iloc[0]['Value'])
-    
-    # Calculate channel-specific metrics
-    google_ads = metrics_df[metrics_df['Channel'] == 'Google Ads']
-    facebook = metrics_df[metrics_df['Channel'] == 'Facebook']
-    organic = metrics_df[metrics_df['Channel'] == 'Organic']
-    email = metrics_df[metrics_df['Channel'] == 'Email']
-    
-    if len(google_ads) > 0:
-        clicks_row = google_ads[google_ads['KPI'] == 'Clicks']
-        conversions_row = google_ads[google_ads['KPI'] == 'Conversions']
-        if len(clicks_row) > 0:
-            summary['Google Ads Clicks'] = extract_value(clicks_row.iloc[0]['Value'])
-        if len(conversions_row) > 0:
-            summary['Google Ads Conversions'] = extract_value(conversions_row.iloc[0]['Value'])
-    
-    if len(facebook) > 0:
-        clicks_row = facebook[facebook['KPI'] == 'Clicks']
-        if len(clicks_row) > 0:
-            summary['Facebook Clicks'] = extract_value(clicks_row.iloc[0]['Value'])
-    
-    if len(organic) > 0:
-        sessions_row = organic[organic['KPI'] == 'Sessions']
-        if len(sessions_row) > 0:
-            summary['Organic Sessions'] = extract_value(sessions_row.iloc[0]['Value'])
+        # Calculate channel-specific metrics
+        google_ads = metrics_df[metrics_df['Channel'] == 'Google Ads']
+        facebook = metrics_df[metrics_df['Channel'] == 'Facebook']
+        organic = metrics_df[metrics_df['Channel'] == 'Organic']
+        
+        if len(google_ads) > 0:
+            clicks_row = google_ads[google_ads['KPI'] == 'Clicks']
+            if len(clicks_row) > 0:
+                summary['Google Ads Clicks'] = extract_value(clicks_row.iloc[0]['Value'])
+        
+        if len(facebook) > 0:
+            clicks_row = facebook[facebook['KPI'] == 'Clicks']
+            if len(clicks_row) > 0:
+                summary['Facebook Clicks'] = extract_value(clicks_row.iloc[0]['Value'])
+        
+        if len(organic) > 0:
+            sessions_row = organic[organic['KPI'] == 'Sessions']
+            if len(sessions_row) > 0:
+                summary['Organic Sessions'] = extract_value(sessions_row.iloc[0]['Value'])
     
     return summary
 
+# Main app
 def main():
     # Header
     st.markdown('<h1 class="main-header">📊 Marketing Analytics Dashboard</h1>', unsafe_allow_html=True)
@@ -181,8 +164,6 @@ def main():
         selected_channel = st.sidebar.selectbox("Select Channel", channels)
         if selected_channel != 'All':
             filtered_df = filtered_df[filtered_df['Channel'] == selected_channel]
-    else:
-        st.warning("No channel data available.")
     
     # Main dashboard
     st.markdown("---")
@@ -193,7 +174,7 @@ def main():
     with col1:
         roas = kpi_summary.get('ROAS', 0)
         delta_value = None
-        if roas > 0 and 3.50 > 0:
+        if roas > 0:
             delta_value = f"{((roas - 3.50) / 3.50 * 100):.1f}%"
         st.metric(
             label="📈 ROAS",
@@ -235,14 +216,18 @@ def main():
         
         # Prepare data for channel comparison
         channel_data = []
-        for channel in metrics_df['Channel'].unique():
-            channel_df = metrics_df[metrics_df['Channel'] == channel]
-            if 'Clicks' in channel_df['KPI'].values:
-                clicks_row = channel_df[channel_df['KPI'] == 'Clicks']
-                if len(clicks_row) > 0:
-                    clicks_val = clicks_row.iloc[0]['Value']
-                    clicks_val = float(str(clicks_val).replace(',', '').replace('%', ''))
-                    channel_data.append({'Channel': channel, 'Clicks': clicks_val})
+        if 'Channel' in metrics_df.columns and 'KPI' in metrics_df.columns:
+            for channel in metrics_df['Channel'].unique():
+                channel_df = metrics_df[metrics_df['Channel'] == channel]
+                if 'Clicks' in channel_df['KPI'].values:
+                    clicks_row = channel_df[channel_df['KPI'] == 'Clicks']
+                    if len(clicks_row) > 0:
+                        try:
+                            clicks_val = clicks_row.iloc[0]['Value']
+                            clicks_val = float(str(clicks_val).replace(',', '').replace('%', ''))
+                            channel_data.append({'Channel': channel, 'Clicks': clicks_val})
+                        except:
+                            pass
         
         if channel_data:
             channel_df_plot = pd.DataFrame(channel_data)
@@ -315,33 +300,14 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown(
-        """
+        f"""
         <div style='text-align: center; color: #666; padding: 1rem;'>
-            <p>Marketing Analytics Dashboard | Last Updated: {}</p>
+            <p>Marketing Analytics Dashboard | Last Updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>Automated KPI tracking with 25+ real-time metrics</p>
         </div>
-        """.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        """,
         unsafe_allow_html=True
     )
 
-if __name__ == "__main__":
-    try:
-        main()
-    except FileNotFoundError as e:
-        st.error(f"File not found: {str(e)}")
-        st.info("""
-        **Troubleshooting:**
-        1. Ensure data files are committed to GitHub
-        2. Check file paths are correct
-        3. Verify files exist in the repository
-        """)
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        st.exception(e)
-        st.info("""
-        **If you're seeing this error:**
-        1. Check that all data files are in the repository
-        2. Verify requirements.txt includes all dependencies
-        3. Check Streamlit Cloud logs for more details
-        """)
-
+# Run the app
+main()

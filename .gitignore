@@ -53,3 +53,8 @@ credentials.json
 *.log
 logs/
 
+# Deployment files (not needed for Streamlit Cloud)
+Dockerfile
+Procfile
+setup.sh
+
